@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sangkuriang Swimming Club - Database Hasil Lomba</title>
+    <!-- Tailwind CSS untuk Desain Hijau Tua yang Modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js untuk Statistik Grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .bg-dark-green { background-color: #064e3b; }
+        .text-dark-green { color: #064e3b; }
+        .border-dark-green { border-color: #064e3b; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+
+    <!-- HEADER & LOGO -->
+    <header class="bg-dark-green text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <!-- Menggunakan file gambar logomu -->
+                <img src="Teks paragraf Anda_20260506_124229_0000.jpg" alt="Logo Sangkuriang Swimming Club" class="w-16 h-16 object-contain bg-white rounded-full p-1 shadow">
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">SANGKURIANG</h1>
+                    <p class="text-xs uppercase tracking-widest text-emerald-300">Swimming Club - Data Hasil Lomba</p>
+                </div>
+            </div>
+            <!-- Navigasi Mode -->
+            <div class="flex bg-emerald-900 rounded-lg p-1 border border-emerald-700">
+                <button id="btn-public" onclick="switchView('public')" class="px-4 py-2 rounded-md font-medium text-sm transition bg-emerald-600 text-white">
+                    👁️ Lihat Data (Publik)
+                </button>
+                <button id="btn-admin" onclick="switchView('admin')" class="px-4 py-2 rounded-md font-medium text-sm transition text-emerald-200 hover:text-white">
+                    ⚙️ Panel Admin
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        
+        <!-- ============================================= -->
+        <!-- 1. HALAMAN PUBLIK (VIEW DATA & GRAFIK)        -->
+        <!-- ============================================= -->
+        <div id="view-public" class="space-y-8">
+            <!-- Ringkasan Club / Club Records (Top Tercepat per Nomor Lomba) -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-bold text-dark-green mb-4 flex items-center gap-2">
+                    🏆 Rekor Waktu Tercepat Club (Club Records)
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="public-records-container">
+                    <!-- Diisi otomatis oleh JS -->
+                </div>
+            </section>
+
+            <!-- Statistik Grafik Perkembangan Atlet -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-bold text-dark-green mb-2 flex items-center gap-2">
+                    📈 Grafik Statistik Waktu Lomba Atlet
+                </h2>
+                <p class="text-sm text-gray-500 mb-4">Pilih nama atlet dan nomor lomba untuk melihat tren performa berdasarkan waktu lomba.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Atlet:</label>
+                        <select id="chart-atlet" onchange="updateChart()" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Nomor Lomba:</label>
+                        <select id="chart-nomor" onchange="updateChart()" class="w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"></select>
+                    </div>
+                </div>
+                <div class="h-72 w-full relative">
+                    <canvas id="atletChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Tabel Semua Data Hasil Lomba -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-bold text-dark-green mb-4 flex items-center gap-2">
+                    📋 Semua Data Hasil Pertandingan
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-dark-green text-white text-sm">
+                                <th class="p-3 rounded-l-lg">Nama Atlet</th>
+                                <th class="p-3">Nomor Lomba</th>
+                                <th class="p-3">Waktu Lomba</th>
+                                <th class="p-3">Nama Event</th>
+                                <th class="p-3 rounded-r-lg">Tahun</th>
+                            </tr>
+                        </thead>
+                        <tbody id="public-table-body" class="text-sm divide-y divide-gray-200">
+                            <!-- Diisi otomatis oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============================================= -->
+        <!-- 2. HALAMAN PANEL ADMIN (INPUT & KELOLA DATA)  -->
+        <!-- ============================================= -->
+        <div id="view-admin" class="hidden space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Form Input Data Lomba Baru -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 lg:col-span-1">
+                    <h2 class="text-lg font-bold text-dark-green mb-4">📥 Input Hasil Lomba Baru</h2>
+                    <form id="form-lomba" onsubmit="saveLomba(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Atlet</label>
+                            <input type="text" id="input-atlet" required placeholder="Contoh: Budi Santoso" class="w-full p-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Lomba (30 Pilihan)</label>
+                            <select id="input-nomor" required class="w-full p-2 border border-gray-300 rounded-md"></select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Waktu Lomba (Format: MM:SS.ms)</label>
+                            <input type="text" id="input-waktu" required placeholder="Contoh: 00:28.45" class="w-full p-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Event</label>
+                            <input type="text" id="input-event" required placeholder="Contoh: Kejurda Jabar" class="w-full p-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Event</label>
+                            <input type="number" id="input-tahun" required value="2026" class="w-full p-2 border border-gray-300 rounded-md">
+                        </div>
+                        <button type="submit" class="w-full bg-dark-green text-white py-2 px-4 rounded-md font-medium hover:bg-emerald-800 transition">
+                            Simpan Data Hasil Lomba
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Kelola / Ubah Nama 30 Nomor Gaya Lomba -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 lg:col-span-2">
+                    <h2 class="text-lg font-bold text-dark-green mb-1">⚙️ Pengaturan Nama Nomor Lomba (30 Nomor)</h2>
+                    <p class="text-sm text-gray-500 mb-4">Admin bisa mengubah nama kategori/nomor lomba di bawah ini sesuka hati.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto p-2 bg-gray-50 rounded-lg border" id="admin-nomor-list">
+                        <!-- Diisi otomatis oleh JS -->
+                    </div>
+                    <button onclick="saveNomorLombaNames()" class="mt-4 bg-emerald-600 text-white py-2 px-6 rounded-md font-medium hover:bg-emerald-700 transition float-right">
+                        Simpan Perubahan Nama Nomor
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabel Manajemen Admin (Bisa Hapus Data) -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-bold text-red-800 mb-4">🛠️ Manajemen Data Terinput (Hapus/Edit)</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-800 text-white text-sm">
+                                <th class="p-3 rounded-l-lg">Nama Atlet</th>
+                                <th class="p-3">Nomor Lomba</th>
+                                <th class="p-3">Waktu Lomba</th>
+                                <th class="p-3">Nama Event</th>
+                                <th class="p-3">Tahun</th>
+                                <th class="p-3 rounded-r-lg text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="text-sm divide-y divide-gray-200">
+                            <!-- Diisi otomatis oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-800 text-gray-400 py-6 mt-12 text-center text-sm border-t-4 border-dark-green">
+        <p>&copy; 2026 Sangkuriang Swimming Club. All Rights Reserved.</p>
+    </footer>
+
+    <!-- LOGIKA JAVASCRIPT APLIKASI -->
+    <script>
+        // Data Master Default untuk 30 Nomor Gaya Lomba
+        const defaultNomorLomba = [
+            "50m Gaya Bebas Putra", "50m Gaya Bebas Putri", "100m Gaya Bebas Putra", "100m Gaya Bebas Putri", "200m Gaya Bebas Putra", "200m Gaya Bebas Putri", "400m Gaya Bebas Putra", "400m Gaya Bebas Putri",
+            "50m Gaya Dada Putra", "50m Gaya Dada Putri", "100m Gaya Dada Putra", "100m Gaya Dada Putri", "200m Gaya Dada Putra", "200m Gaya Dada Putri",
+            "50m Gaya Punggung Putra", "50m Gaya Punggung Putri", "100m Gaya Punggung Putra", "100m Gaya Punggung Putri", "200m Gaya Punggung Putra", "200m Gaya Punggung Putri",
+            "50m Gaya Kupu-Kupu Putra", "50m Gaya Kupu-Kupu Putri", "100m Gaya Kupu-Kupu Putra", "100m Gaya Kupu-Kupu Putri", "200m Gaya Kupu-Kupu Putra", "200m Gaya Kupu-Kupu Putri",
+            "200m Gaya Ganti Perorangan Putra", "200m Gaya Ganti Perorangan Putri", "400m Gaya Ganti Perorangan Putra", "400m Gaya Ganti Perorangan Putri"
+        ];
+
+        // Memuat Data dari LocalStorage atau menginisialisasi baru
+        let nomorLomba = JSON.parse(localStorage.getItem('swimming_nomor')) || defaultNomorLomba;
+        let dataHasilLomba = JSON.parse(localStorage.getItem('swimming_hasil')) || [
+            // Dummy Data Awal untuk simulasi
+            { id: 1, atlet: "Budi Santoso", nomorIdx: 0, waktu: "00:26.50", event: "Kejurda Jabar", tahun: 2025 },
+            { id: 2, atlet: "Budi Santoso", nomorIdx: 0, waktu: "00:25.90", event: "Pekan Olahraga Nasional", tahun: 2026 },
+            { id: 3, atlet: "Siti Rahma", nomorIdx: 1, waktu: "00:29.10", event: "Kejurda Jabar", tahun: 2025 },
+            { id: 4, atlet: "Siti Rahma", nomorIdx: 1, waktu: "00:28.45", event: "Jakarta Open", tahun: 2026 }
+        ];
+
+        let myChart = null;
+
+        // Inisialisasi awal saat web dibuka
+        document.addEventListener("DOMContentLoaded", () => {
+            renderNomorOptions();
+            renderAdminNomorInputs();
+            renderTableData();
+            renderRecords();
+            populateChartFilters();
+            updateChart();
+        });
+
+        // Pindah Halaman antara Publik & Admin (Dengan Fitur Proteksi Password)
+        function switchView(view) {
+            const pubView = document.getElementById('view-public');
+            const admView = document.getElementById('view-admin');
+            const btnPub = document.getElementById('btn-public');
+            const btnAdm = document.getElementById('btn-admin');
+
+            if (view === 'public') {
+                pubView.classList.remove('hidden');
+                admView.classList.add('hidden');
+                btnPub.className = "px-4 py-2 rounded-md font-medium text-sm transition bg-emerald-600 text-white";
+                btnAdm.className = "px-4 py-2 rounded-md font-medium text-sm transition text-emerald-200 hover:text-white";
+                // Refresh data visual publik
+                renderRecords();
+                populateChartFilters();
+                updateChart();
+                renderTableData();
+            } else {
+                // Verifikasi Password Admin sebelum membuka halaman
+                const passwordInput = prompt("Masukkan password untuk masuk ke Panel Admin:");
+                
+                if (passwordInput === "sangkuriang*11") {
+                    pubView.classList.add('hidden');
+                    admView.classList.remove('hidden');
+                    btnPub.className = "px-4 py-2 rounded-md font-medium text-sm transition text-emerald-200 hover:text-white";
+                    btnAdm.className = "px-4 py-2 rounded-md font-medium text-sm transition bg-emerald-600 text-white";
+                } else if (passwordInput !== null) {
+                    alert("❌ Password salah! Anda tidak memiliki akses ke Panel Admin.");
+                }
+            }
+        }
+
+        // Render Dropdown Pilihan Lomba
+        function renderNomorOptions() {
+            const selectEl = document.getElementById('input-nomor');
+            selectEl.innerHTML = nomorLomba.map((nomor, idx) => `<option value="${idx}">${nomor}</option>`).join('');
+        }
+
+        // Render Daftar Input Pengubah Nama Nomor Lomba untuk Admin
+        function renderAdminNomorInputs() {
+            const container = document.getElementById('admin-nomor-list');
+            container.innerHTML = nomorLomba.map((nomor, idx) => `
+                <div class="flex items-center gap-2 bg-white p-2 border rounded shadow-sm">
+                    <span class="text-xs font-bold text-gray-400 w-6">${idx+1}.</span>
+                    <input type="text" id="nomor-input-${idx}" value="${nomor}" class="w-full text-sm p-1 border border-gray-200 rounded focus:border-emerald-500">
+                </div>
+            `).join('');
+        }
+
+        // Simpan Perubahan Nama 30 Nomor Gaya Lomba
+        function saveNomorLombaNames() {
+            for (let i = 0; i < 30; i++) {
+                const val = document.getElementById(`nomor-input-${i}`).value.trim();
+                if(val) nomorLomba[i] = val;
+            }
+            localStorage.setItem('swimming_nomor', JSON.stringify(nomorLomba));
+            renderNomorOptions();
+            alert("✅ Nama-nama nomor gaya lomba berhasil diperbarui!");
+        }
+
+        // Simpan Data Hasil Lomba yang dimasukkan Admin
+        function saveLomba(e) {
+            e.preventDefault();
+            const newRecord = {
+                id: Date.now(),
+                atlet: document.getElementById('input-atlet').value.trim(),
+                nomorIdx: parseInt(document.getElementById('input-nomor').value),
+                waktu: document.getElementById('input-waktu').value.trim(),
+                event: document.getElementById('input-event').value.trim(),
+                tahun: parseInt(document.getElementById('input-tahun').value)
+            };
+
+            dataHasilLomba.push(newRecord);
+            localStorage.setItem('swimming_hasil', JSON.stringify(dataHasilLomba));
+            
+            document.getElementById('form-lomba').reset();
+            document.getElementById('input-tahun').value = 2026;
+            renderTableData();
+            alert("✅ Data hasil lomba berhasil disimpan!");
+        }
+
+        // Hapus Data Hasil Lomba oleh Admin
+        function deleteData(id) {
+            if(confirm("Apakah Anda yakin ingin menghapus data pertandingan ini?")) {
+                dataHasilLomba = dataHasilLomba.filter(item => item.id !== id);
+                localStorage.setItem('swimming_hasil', JSON.stringify(dataHasilLomba));
+                renderTableData();
+            }
+        }
+
+        // Render Tabel Data (Baik di Halaman Publik maupun Admin)
+        function renderTableData() {
+            const publicBody = document.getElementById('public-table-body');
+            const adminBody = document.getElementById('admin-table-body');
+
+            // Sortir data terbaru berdasarkan tahun terbaru
+            const sortedData = [...dataHasilLomba].sort((a,b) => b.tahun - a.tahun);
+
+            const publicRows = sortedData.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 font-medium text-gray-800">${item.atlet}</td>
+                    <td class="p-3 text-gray-600">${nomorLomba[item.nomorIdx] || 'Nomor Tidak Diketahui'}</td>
+                    <td class="p-3 font-mono text-emerald-700 font-semibold">${item.waktu}</td>
+                    <td class="p-3 text-gray-600">${item.event}</td>
+                    <td class="p-3 text-gray-500">${item.tahun}</td>
+                </tr>
+            `).join('');
+
+            const adminRows = sortedData.map(item => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 font-medium">${item.atlet}</td>
+                    <td class="p-3">${nomorLomba[item.nomorIdx]}</td>
+                    <td class="p-3 font-mono text-emerald-700 font-bold">${item.waktu}</td>
+                    <td class="p-3">${item.event}</td>
+                    <td class="p-3">${item.tahun}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteData(${item.id})" class="text-red-600 hover:text-red-900 font-medium text-xs bg-red-50 hover:bg-red-100 px-2 py-1 rounded">Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            publicBody.innerHTML = publicRows || `<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada data kompetisi.</td></tr>`;
+            adminBody.innerHTML = adminRows || `<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada data kompetisi.</td></tr>`;
+        }
+
+        // Kalkulasi & Tampilkan Waktu Tercepat Anak per Nomor Lomba (Club Records)
+        function renderRecords() {
+            const container = document.getElementById('public-records-container');
+            
+            // Cari data tercepat untuk masing-masing nomor lomba
+            const records = {};
+            
+            dataHasilLomba.forEach(item => {
+                const idx = item.nomorIdx;
+                if (!records[idx] || item.waktu < records[idx].waktu) {
+                    records[idx] = item;
+                }
+            });
+
+            let html = '';
+            let count = 0;
+            for(let i=0; i<30; i++) {
+                if(records[i]) {
+                    count++;
+                    html += `
+                        <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100 flex justify-between items-center shadow-sm">
+                            <div>
+                                <h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider">${nomorLomba[i]}</h4>
+                                <p class="text-base font-bold text-gray-800 mt-1">${records[i].atlet}</p>
+                                <p class="text-xs text-gray-500">${records[i].event} (${records[i].tahun})</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-dark-green text-white font-mono text-sm px-2.5 py-1 rounded-md font-bold">${records[i].waktu}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            container.innerHTML = html || `<p class="text-gray-400 text-sm col-span-full">Belum ada data rekor yang tercatat.</p>`;
+        }
+
+        // Mengisi Filter Dropdown untuk Keperluan Grafik
+        function populateChartFilters() {
+            const atletSelect = document.getElementById('chart-atlet');
+            const nomorSelect = document.getElementById('chart-nomor');
+
+            // Ambil daftar unik nama atlet
+            const atletUnik = [...new Set(dataHasilLomba.map(item => item.atlet))];
+            atletSelect.innerHTML = atletUnik.map(atlet => `<option value="${atlet}">${atlet}</option>`).join('');
+
+            // Isi nomor lomba
+            nomorSelect.innerHTML = nomorLomba.map((nomor, idx) => `<option value="${idx}">${nomor}</option>`).join('');
+        }
+
+        // Memperbarui Tampilan Grafik Perkembangan Berdasarkan Filter Waktu Lomba
+        function updateChart() {
+            const selectedAtlet = document.getElementById('chart-atlet').value;
+            const selectedNomor = parseInt(document.getElementById('chart-nomor').value);
+
+            // Filter data atlet tertentu pada nomor lomba tertentu, urutkan berdasarkan tahun kronologis (terlama ke terbaru)
+            const filteredData = dataHasilLomba
+                .filter(item => item.atlet === selectedAtlet && item.nomorIdx === selectedNomor)
+                .sort((a,b) => a.tahun - b.tahun);
+
+            const labels = filteredData.map(item => `${item.event} (${item.tahun})`);
+            // Mengubah format waktu string (MM:SS.ms) menjadi nilai float detik agar bisa digambar di grafik
+            const dataWaktuDetik = filteredData.map(item => {
+                const parts = item.waktu.split(':');
+                if(parts.length === 2) {
+                    return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+                }
+                return parseFloat(item.waktu) || 0;
+            });
+
+            const ctx = document.getElementById('atletChart').getContext('2d');
+            
+            if (myChart) {
+                myChart.destroy(); // Hancurkan chart lama sebelum membuat yang baru
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Waktu dalam Detik (Makin rendah makin cepat)`,
+                        data: dataWaktuDetik,
+                        borderColor: '#064e3b',
+                        backgroundColor: 'rgba(6, 78, 59, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#10b981',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    return ` Waktu Asli: ${filteredData[index].waktu}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Detik' },
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
