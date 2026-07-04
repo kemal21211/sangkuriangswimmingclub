@@ -17,7 +17,7 @@
     <header class="bg-dark-green text-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
-                <img id="club-header-logo" src="https://placehold.co/200x200?text=SSC" alt="Logo Sangkuriang Swimming Club" class="w-16 h-16 object-cover bg-white rounded-full p-1 shadow">
+                <img id="club-header-logo" src="https://i.ibb.co/ymv8hrZf/Whats-App-Image-2026-05-30-at-20-11-17.jpg" alt="Logo Sangkuriang Swimming Club" class="w-16 h-16 object-cover bg-white rounded-full p-1 shadow">
                 <div>
                     <h1 class="text-xl font-bold tracking-wide">SANGKURIANG</h1>
                     <p class="text-xs uppercase tracking-widest text-emerald-300">Swimming Club - Data Hasil Lomba</p>
@@ -84,8 +84,8 @@
                         <h2 class="text-md font-bold text-dark-green mb-2">🖼️ Pengaturan Foto Profil/Logo Club</h2>
                         <form id="form-logo-club" onsubmit="saveClubLogo(event)" class="space-y-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Link Google Drive Logo Baru:</label>
-                                <input type="url" id="input-logo-url" required placeholder="https://drive.google.com/file/d/.../view" class="w-full p-2 text-xs border border-gray-300 rounded-md">
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Tautan Langsung Gambar (Direct URL):</label>
+                                <input type="url" id="input-logo-url" required placeholder="Contoh: https://i.ibb.co/.../image.jpg" class="w-full p-2 text-xs border border-gray-300 rounded-md">
                             </div>
                             <button type="submit" class="w-full bg-emerald-700 text-white py-1.5 px-3 rounded-md font-medium text-xs hover:bg-emerald-800 transition">
                                 Update Logo Header
@@ -202,21 +202,6 @@
         let myChart = null;
         let isFirstLoad = true;
 
-        // --- FILTER RESMI DAN AMAN UNTUK MEMBACA ID GOOGLE DRIVE ---
-        function cleanDriveUrl(url) {
-            try {
-                const regExp = /\/d\/([a-zA-Z0-9-_]+)/;
-                const matches = url.match(regExp);
-                if (matches && matches[1]) {
-                    // Menggunakan endpoint resmi Google API viewer yang diizinkan oleh GitHub deployment
-                    return `https://drive.google.com/uc?export=view&id=${matches[1]}`;
-                }
-                return url;
-            } catch (e) {
-                return url;
-            }
-        }
-
         // --- REALTIME SINKRONISASI LOGO CLUB ---
         const logoRef = ref(db, 'swimming_club_logo');
         onValue(logoRef, (snapshot) => {
@@ -231,9 +216,9 @@
         window.saveClubLogo = function(e) {
             e.preventDefault();
             const rawUrl = document.getElementById('input-logo-url').value.trim();
-            const cleanUrl = cleanDriveUrl(rawUrl);
             
-            set(logoRef, cleanUrl).then(() => {
+            // Simpan link gambar langsung bersih ke database Firebase secara realtime
+            set(logoRef, rawUrl).then(() => {
                 alert("✅ Logo profil club berhasil diperbarui secara Realtime!");
             });
         }
