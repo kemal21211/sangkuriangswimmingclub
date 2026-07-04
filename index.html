@@ -17,7 +17,8 @@
     <header class="bg-dark-green text-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
-                <img id="club-header-logo" src="https://i.ibb.co/ymv8hrZf/Whats-App-Image-2026-05-30-at-20-11-17.jpg" alt="Logo Sangkuriang Swimming Club" class="w-16 h-16 object-cover bg-white rounded-full p-1 shadow">
+                <!-- BINGKAI LINGKARAN LOGO DIPERBESAR MENJADI w-24 h-24 -->
+                <img id="club-header-logo" src="https://i.ibb.co/ymv8hrZf/Whats-App-Image-2026-05-30-at-20-11-17.jpg" alt="Logo Sangkuriang Swimming Club" class="w-24 h-24 object-cover bg-white rounded-full p-1 shadow-md">
                 <div>
                     <h1 class="text-xl font-bold tracking-wide">SANGKURIANG</h1>
                     <p class="text-xs uppercase tracking-widest text-emerald-300">Swimming Club - Data Hasil Lomba</p>
@@ -36,6 +37,7 @@
 
     <main class="container mx-auto px-4 py-8">
         
+        <!-- ================= Halaman Publik ================= -->
         <div id="view-public" class="space-y-8">
             <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h2 class="text-lg font-bold text-dark-green mb-4 flex items-center gap-2">
@@ -77,9 +79,11 @@
             </section>
         </div>
 
+        <!-- ================= Halaman Admin ================= -->
         <div id="view-admin" class="hidden space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 lg:col-span-1 space-y-6">
+                    <!-- FITUR UPDATE FOTO PROFIL CLUB -->
                     <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
                         <h2 class="text-md font-bold text-dark-green mb-2">🖼️ Pengaturan Foto Profil/Logo Club</h2>
                         <form id="form-logo-club" onsubmit="saveClubLogo(event)" class="space-y-3">
@@ -217,7 +221,6 @@
             e.preventDefault();
             const rawUrl = document.getElementById('input-logo-url').value.trim();
             
-            // Simpan link gambar langsung bersih ke database Firebase secara realtime
             set(logoRef, rawUrl).then(() => {
                 alert("✅ Logo profil club berhasil diperbarui secara Realtime!");
             });
