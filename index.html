@@ -17,7 +17,6 @@
     <header class="bg-dark-green text-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
-                <!-- LOGO DINAMIS DARI GOOGLE DRIVE -->
                 <img id="club-header-logo" src="https://placehold.co/200x200?text=SSC" alt="Logo Sangkuriang Swimming Club" class="w-16 h-16 object-cover bg-white rounded-full p-1 shadow">
                 <div>
                     <h1 class="text-xl font-bold tracking-wide">SANGKURIANG</h1>
@@ -37,7 +36,6 @@
 
     <main class="container mx-auto px-4 py-8">
         
-        <!-- ================= Halaman Publik ================= -->
         <div id="view-public" class="space-y-8">
             <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h2 class="text-lg font-bold text-dark-green mb-4 flex items-center gap-2">
@@ -79,11 +77,9 @@
             </section>
         </div>
 
-        <!-- ================= Halaman Admin ================= -->
         <div id="view-admin" class="hidden space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 lg:col-span-1 space-y-6">
-                    <!-- FITUR UPDATE FOTO PROFIL CLUB -->
                     <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
                         <h2 class="text-md font-bold text-dark-green mb-2">🖼️ Pengaturan Foto Profil/Logo Club</h2>
                         <form id="form-logo-club" onsubmit="saveClubLogo(event)" class="space-y-3">
@@ -206,13 +202,14 @@
         let myChart = null;
         let isFirstLoad = true;
 
-        // --- FILTER FORMAT LINK GOOGLE DRIVE AGAR BISA RENDERING SEBAGAI GAMBAR ASLI ---
+        // --- FILTER RESMI DAN AMAN UNTUK MEMBACA ID GOOGLE DRIVE ---
         function cleanDriveUrl(url) {
             try {
                 const regExp = /\/d\/([a-zA-Z0-9-_]+)/;
                 const matches = url.match(regExp);
                 if (matches && matches[1]) {
-                    return `https://thumbnail.image.as/t/${matches[1]}`;
+                    // Menggunakan endpoint resmi Google API viewer yang diizinkan oleh GitHub deployment
+                    return `https://drive.google.com/uc?export=view&id=${matches[1]}`;
                 }
                 return url;
             } catch (e) {
